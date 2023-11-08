@@ -1,4 +1,3 @@
-import "./App.css";
 import { Mode, Chord } from "tonal";
 import * as Tone from "tone";
 
