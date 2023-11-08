@@ -1,35 +1,63 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import { Mode, Chord } from "tonal";
+import * as Tone from "tone";
+
+type ChordType = {
+  name: string;
+  tonic: string | null;
+  notes: string[];
+};
+
+const generateChords = (octave: string): ChordType[] => {
+  const triadsNames: string[] = Mode.triads("major", "C");
+  const seventhNames: string[] = Mode.seventhChords("major", "C");
+  const chordsNames: string[] = [...triadsNames, ...seventhNames];
+
+  const chordsWithOctave: ChordType[] = chordsNames.map((chordName: string) => {
+    const chord = Chord.get(chordName);
+    const chordWithOctave = Chord.getChord(
+      chord.aliases[0],
+      chord.tonic + octave
+    );
+    const chordType: ChordType = {
+      name: chordName,
+      tonic: chordWithOctave.tonic,
+      notes: chordWithOctave.notes,
+    };
+    return chordType;
+  });
+
+  return chordsWithOctave;
+};
+
+const playChord = (piano: Tone.PolySynth, notes: string[]) => {
+  piano.triggerAttackRelease(notes, "1s");
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const piano = new Tone.PolySynth().toDestination();
+  const chords: ChordType[] = generateChords("4");
 
   return (
     <>
+      <h1>C Chords</h1>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        {chords.map((chord: ChordType, index: number) => (
+          <button
+            key={index}
+            onClick={() => {
+              Tone.start().then(() => {
+                playChord(piano, chord.notes);
+              });
+            }}
+          >
+            {chord.name}
+          </button>
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
+
